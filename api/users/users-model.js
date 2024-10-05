@@ -2,6 +2,7 @@ const db = require("../../data/dbConfig");
 const bcrypt = require("bcryptjs");
 
 const User = {
+
   async get_all() {
     return db("users");
   },
@@ -11,30 +12,26 @@ const User = {
   },
 
   async find_by_username(username) {
-    return db("users").where({ username }).first();
+    const user = await db("users").where({ username }).first();
+    return user;
   },
 
   async create(user_data) {
     const { username, password } = user_data;
     const hashed_password = bcrypt.hashSync(password, 10);
-    const [id] = await db("users").insert({
-      username,
-      password: hashed_password,
-    });
-    return await this.get_by_id(id);
+      const [id] = await db("users").insert({
+        username,
+        password: hashed_password,
+      });
+      const newUser = await this.get_by_id(id);
+      return newUser;
   },
 
-  async update(user_id, changes) {
-    if (changes.password) {
-      changes.password = bcrypt.hashSync(changes.password, 10);
-    }
-    await db("users").where({ user_id }).update(changes);
-    return await this.get_by_id(user_id)
-  },
-
-  async delete(user_id) {
-    return db("users").where({ user_id }).del();
+  async verify_password(user, password) {
+    console.log("Verifying password for user:", user);
+    return bcrypt.compareSync(password, user.password);
   }
+
 };
 
 module.exports = User;
